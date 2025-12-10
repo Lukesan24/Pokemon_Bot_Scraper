@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 
 class AntibotDetector:
@@ -29,6 +29,10 @@ class AntibotDetector:
     - Bot detection scripts
     """
     
+    # Constants
+    MAX_SCRIPTS_TO_CHECK = 20
+    MAX_INDICATORS_TO_SHOW = 3
+    
     def __init__(self, driver: webdriver.Chrome):
         """
         Initialize the antibot detector.
@@ -39,7 +43,7 @@ class AntibotDetector:
         self.driver = driver
         self.detection_results = {}
         
-    def detect_all_measures(self, url: str, timeout: int = 5) -> Dict[str, any]:
+    def detect_all_measures(self, url: str, timeout: int = 5) -> Dict[str, Any]:
         """
         Perform comprehensive antibot detection on a given URL.
         
@@ -85,7 +89,7 @@ class AntibotDetector:
                 'risk_level': 'unknown'
             }
     
-    def _detect_cloudflare(self) -> Dict[str, any]:
+    def _detect_cloudflare(self) -> Dict[str, Any]:
         """Detect Cloudflare protection."""
         indicators = {
             'detected': False,
@@ -134,7 +138,7 @@ class AntibotDetector:
         
         return indicators
     
-    def _detect_recaptcha(self) -> Dict[str, any]:
+    def _detect_recaptcha(self) -> Dict[str, Any]:
         """Detect Google reCAPTCHA."""
         indicators = {
             'detected': False,
@@ -174,7 +178,7 @@ class AntibotDetector:
         
         return indicators
     
-    def _detect_hcaptcha(self) -> Dict[str, any]:
+    def _detect_hcaptcha(self) -> Dict[str, Any]:
         """Detect hCaptcha."""
         indicators = {
             'detected': False,
@@ -210,7 +214,7 @@ class AntibotDetector:
         
         return indicators
     
-    def _detect_js_challenge(self) -> Dict[str, any]:
+    def _detect_js_challenge(self) -> Dict[str, Any]:
         """Detect JavaScript challenges."""
         indicators = {
             'detected': False,
@@ -258,7 +262,7 @@ class AntibotDetector:
         
         return indicators
     
-    def _detect_bot_scripts(self) -> Dict[str, any]:
+    def _detect_bot_scripts(self) -> Dict[str, Any]:
         """Detect known bot detection scripts."""
         indicators = {
             'detected': False,
@@ -291,7 +295,7 @@ class AntibotDetector:
             # Check for suspicious script tags
             try:
                 scripts = self.driver.find_elements(By.TAG_NAME, 'script')
-                for script in scripts[:20]:  # Limit to first 20 scripts
+                for script in scripts[:self.MAX_SCRIPTS_TO_CHECK]:
                     src = script.get_attribute('src')
                     if src:
                         src_lower = src.lower()
@@ -308,7 +312,7 @@ class AntibotDetector:
         
         return indicators
     
-    def _detect_rate_limiting(self) -> Dict[str, any]:
+    def _detect_rate_limiting(self) -> Dict[str, Any]:
         """Detect rate limiting indicators."""
         indicators = {
             'detected': False,
@@ -345,7 +349,7 @@ class AntibotDetector:
         
         return indicators
     
-    def _detect_waf(self) -> Dict[str, any]:
+    def _detect_waf(self) -> Dict[str, Any]:
         """Detect Web Application Firewall."""
         indicators = {
             'detected': False,
@@ -403,7 +407,7 @@ class AntibotDetector:
         
         return indicators
     
-    def _detect_selenium_detection(self) -> Dict[str, any]:
+    def _detect_selenium_detection(self) -> Dict[str, Any]:
         """Detect if the site is checking for Selenium/WebDriver."""
         indicators = {
             'detected': False,
@@ -533,7 +537,7 @@ class AntibotDetector:
             print(f"{name:.<40} {status}")
             
             if detected and data.get('indicators'):
-                for indicator in data['indicators'][:3]:  # Show first 3 indicators
+                for indicator in data['indicators'][:self.MAX_INDICATORS_TO_SHOW]:
                     print(f"    → {indicator}")
             
             if data.get('error'):
